@@ -13,7 +13,6 @@ project_config:
     - "AZURE_TENANT_ID"
     - "AZURE_CLIENT_SECRET"
 
-
 offline_store:
   # paths starts with abfss:// or abfs://
   # ADLS_ACCOUNT and ADLS_KEY should be set in environment variable if this is set to true
@@ -35,8 +34,11 @@ offline_store:
   # jdbc endpoint
   jdbc:
     jdbc_enabled: true
-    jdbc_database: "feathrtestdb"
-    jdbc_table: "feathrtesttable"
+    jdbc_database: "feathr"
+    jdbc_table: "nycTaxi"
+    jdbc_user: "feathrai@feathrcimysql"
+    jdbc_passwrod: "FeathrRock123!"
+    jdbc_driver: "com.mysql.jdbc.Driver"
 
 # reading from streaming source is coming soon
 # streaming_source:
