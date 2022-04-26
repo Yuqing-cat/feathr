@@ -12,13 +12,12 @@ from feathr import (BOOLEAN, FLOAT, INPUT_CONTEXT, INT32, STRING,
 from feathr.client import FeathrClient
 from pyspark.sql import DataFrame
 
-
 def basic_test_setup(config_path: str):
 
     now = datetime.now()
     # set workspace folder by time; make sure we don't have write conflict if there are many CI tests running
     os.environ['SPARK_CONFIG__DATABRICKS__WORK_DIR'] = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), '_', str(now.microsecond)]) 
-    os.environ['SPARK_CONFIG__AZURE_SYNAPSE__WORKSPACE_DIR'] = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/feathr_github_ci','_', str(now.minute), '_', str(now.second) ,'_', str(now.microsecond)]) 
+    os.environ['SPARK_CONFIG__AZURE_SYNAPSE__WORKSPACE_DIR'] = get_synapase_workspace_dir()
     
     client = FeathrClient(config_path=config_path)
     batch_source = HdfsSource(name="nycTaxiBatchSource",
@@ -91,7 +90,7 @@ def snowflake_test_setup(config_path: str):
     now = datetime.now()
     # set workspace folder by time; make sure we don't have write conflict if there are many CI tests running
     os.environ['SPARK_CONFIG__DATABRICKS__WORK_DIR'] = ''.join(['dbfs:/feathrazure_cijob_snowflake','_', str(now.minute), '_', str(now.second), '_', str(now.microsecond)]) 
-    os.environ['SPARK_CONFIG__AZURE_SYNAPSE__WORKSPACE_DIR'] = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/feathr_github_ci_snowflake','_', str(now.minute), '_', str(now.second), '_', str(now.microsecond)]) 
+    os.environ['SPARK_CONFIG__AZURE_SYNAPSE__WORKSPACE_DIR'] = get_synapase_workspace_dir()
 
     client = FeathrClient(config_path=config_path)
     batch_source = HdfsSource(name="snowflakeSampleBatchSource",
@@ -251,3 +250,22 @@ def registry_test_setup(config_path: str):
     random.shuffle(derived_feature_list)
     client.build_features(anchor_list=[agg_anchor, request_anchor], derived_feature_list=derived_feature_list)
     return client
+
+def get_synapase_workspace_dir(datalake_container: str = None, github_ci_path: str = 'feathr_github_ci'):
+    default_datalake_container = os.environ('SYNAPSE_WORKSPACE_DIR') or 'abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net'
+    datalake_container = datalake_container or default_datalake_container
+    now = datetime.now()
+    # ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/feathr_github_ci','_', str(now.minute), '_', str(now.second) ,'_', str(now.microsecond)]) 
+    return '_'.join(f'{datalake_container}/{github_ci_path}', str(now.minute),str(now.second), str(now.microsecond))
+
+def get_synapse_output_path(datalake_container: str = None, output_path: str = 'demo_data/output', suffix: str = '.avro'):
+    default_datalake_container = os.environ('SYNAPSE_WORKSPACE_DIR') or 'abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net'
+    datalake_container = datalake_container or default_datalake_container
+    now = datetime.now()
+    ''' plain text output path samples for reference: 
+    ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".avro"])
+    ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/snowflake_output','_', str(now.minute), '_', str(now.second), ".avro"])
+    ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), "_deltalake"])
+    ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".parquet"])
+    '''
+    return f'{datalake_container}/{output_path}_{str(now.minute)}_{str(now.second)}{suffix}'

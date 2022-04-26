@@ -7,6 +7,7 @@ from click.testing import CliRunner
 from feathr import (BOOLEAN, FLOAT, INT32, FeatureQuery, ObservationSettings,
                     SparkExecutionConfiguration, TypedKey, ValueType)
 from feathr.job_utils import get_result_df
+from feathr_project.test.test_fixture import get_synapse_output_path
 
 from test_fixture import basic_test_setup
 from feathr.constants import OUTPUT_FORMAT
@@ -38,8 +39,7 @@ def test_feathr_get_offline_features_with_parquet():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), ".parquet"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".parquet"])
-
+        output_path = get_synapse_output_path(suffix='.parquet')
     
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,
@@ -83,8 +83,7 @@ def test_feathr_get_offline_features_with_delta_lake():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), "_deltalake"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), "_deltalake"])
-
+        output_path = get_synapse_output_path(output_path = 'demo_data/output', suffix='_deltalake')
     
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,

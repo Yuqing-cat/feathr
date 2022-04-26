@@ -14,6 +14,7 @@ from feathr import RedisSink
 from feathr import TypedKey
 from feathrcli.cli import init
 import pytest
+from feathr_project.test.test_fixture import get_synapase_workspace_dir, get_synapse_output_path
 
 from test_fixture import basic_test_setup
 # make sure you have run the upload feature script before running these tests
@@ -157,7 +158,7 @@ def test_feathr_get_offline_features():
         if client.spark_runtime == 'databricks':
             output_path = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), ".avro"])
         else:
-            output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".avro"])
+            output_path = get_synapse_output_path()
 
 
         client.get_offline_features(observation_settings=settings,

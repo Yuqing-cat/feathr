@@ -12,10 +12,9 @@ from feathr.source import INPUT_CONTEXT, HdfsSource
 from feathr.typed_key import TypedKey
 from feathr.transformation import WindowAggTransformation
 from pyspark.sql import SparkSession, DataFrame
-from test_fixture import basic_test_setup
+from test_fixture import (basic_test_setup, snowflake_test_setup, get_synapse_output_path, default_datalake_container)
 from feathr import (BackfillTime, MaterializationSettings)
 from feathr import RedisSink
-from test_fixture import snowflake_test_setup
 
 def trip_distance_preprocessing(df: DataFrame):
     df = df.withColumn("trip_distance", df.trip_distance.cast('double') - 90000)
@@ -257,8 +256,7 @@ def test_feathr_get_offline_features_hdfs_source():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), ".avro"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".avro"])
-
+        output_path = get_synapse_output_path()
 
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,
@@ -374,7 +372,7 @@ def test_get_offline_feature_two_swa_with_diff_preprocessing():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob','_', str(now.minute), '_', str(now.second), ".avro"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/output','_', str(now.minute), '_', str(now.second), ".avro"])
+        output_path = get_synapse_output_path()
 
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,
@@ -442,7 +440,7 @@ def test_feathr_get_offline_features_from_snowflake():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob_snowflake', '_', str(now.minute), '_', str(now.second), ".avro"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/snowflake_output','_', str(now.minute), '_', str(now.second), ".avro"])
+        output_path = get_synapse_output_path(output_path='demo_data/snowflake_output')
 
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,

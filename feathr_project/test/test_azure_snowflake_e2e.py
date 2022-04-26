@@ -10,7 +10,7 @@ from feathr import FeatureQuery
 from feathr import ObservationSettings
 from feathr import RedisSink
 from feathr import TypedKey
-from test_fixture import snowflake_test_setup
+from test_fixture import (snowflake_test_setup, get_synapse_output_path)
 
 
 def test_feathr_online_store_agg_features():
@@ -73,8 +73,8 @@ def test_feathr_get_offline_features():
     if client.spark_runtime == 'databricks':
         output_path = ''.join(['dbfs:/feathrazure_cijob_snowflake','_', str(now.minute), '_', str(now.second), ".avro"])
     else:
-        output_path = ''.join(['abfss://feathrazuretest3fs@feathrazuretest3storage.dfs.core.windows.net/demo_data/snowflake_output','_', str(now.minute), '_', str(now.second), ".avro"])
-    
+        output_path = get_synapse_output_path(output_path='demo_data/snowflake_output')
+   
     client.get_offline_features(observation_settings=settings,
                                 feature_query=feature_query,
                                 output_path=output_path)
