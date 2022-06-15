@@ -41,7 +41,7 @@ def parse_conn_str(s: str) -> dict:
 class MssqlConnection(DbConnection):
     @staticmethod
     def connect(*args, **kwargs):
-        conn_str = os.environ["CONNECTION_STR"]
+        conn_str = "Server=tcp:feathrtestsql4.database.windows.net,1433;Initial Catalog=testsql;Persist Security Info=False;User ID=feathr@feathrtestsql4;Password=Password01!;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
         if "Server=" not in conn_str:
             debug("`CONNECTION_STR` is not in ADO connection string format")
             return None
