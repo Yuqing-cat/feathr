@@ -2,8 +2,10 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Form, Select, Table } from "antd";
 import { DataSource } from "../models/model";
 import { fetchDataSources, fetchProjects } from "../api";
+import { useNavigate } from 'react-router-dom';
 
 const DataSourceList: React.FC = () => {
+  const navigate = useNavigate();
   const columns = [
     {
       title: <div style={ { userSelect: "none" } }>Name</div>,
@@ -111,9 +113,15 @@ const DataSourceList: React.FC = () => {
   const fetchData = useCallback(async (project: string) => {
     setLoading(true);
     const result = await fetchDataSources(project);
-    setPage(page);
-    setTableData(result);
-    setLoading(false);
+    if (result.status === 403) {
+      navigate(`/exception/${result.status}/${JSON.stringify(result.data)}`);
+    }
+    else {
+      setPage(page);
+      setTableData(result);
+      setLoading(false);
+    }
+
   }, [page])
 
   const loadProjects = useCallback(async () => {

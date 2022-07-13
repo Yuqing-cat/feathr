@@ -26,6 +26,10 @@ export const fetchDataSources = async (project: string) => {
     })
     .then((response) => {
       return response.data;
+    })
+    .catch((error) => {
+      console.log(error)
+      return error.response;
     });
 };
 
@@ -52,6 +56,10 @@ export const fetchFeatures = async (
     })
     .then((response) => {
       return response.data;
+    })
+    .catch((error) => {
+      console.log(error)
+      return error.response;
     });
 };
 
@@ -123,6 +131,9 @@ export const listUserRole = async () => {
     .get<UserRole[]>(`${getApiBaseUrl()}/userroles`, {})
     .then((response) => {
       return response.data;
+    })    
+    .catch((error) => {
+      return error.response;
     });
 };
 

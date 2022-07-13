@@ -13,6 +13,7 @@ import {
 } from "antd";
 import { UserRole } from "../models/model";
 import { deleteUserRole, listUserRole } from "../api";
+import { json } from "stream/consumers";
 
 const UserRoles: React.FC = () => {
   const navigate = useNavigate();
@@ -115,10 +116,15 @@ const UserRoles: React.FC = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     const result = await listUserRole();
-    console.log(result);
-    setPage(page);
-    setTableData(result);
-    setLoading(false);
+    if (result.status === 403) {
+      navigate(`/exception/${result.status}/${JSON.stringify(result.data)}`);
+    }
+    else {
+      setPage(page);
+      setTableData(result);
+      setLoading(false);
+    }
+
   }, [page]);
 
   const onClickRoleAssign = () => {

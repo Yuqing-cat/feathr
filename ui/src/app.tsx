@@ -16,6 +16,7 @@ import LineageGraph from "./pages/feature/lineageGraph";
 import Management from "./pages/management/management";
 import RoleManagement from "./pages/management/roleManagement";
 import { getMsalConfig } from "./utils/utils";
+import Exception from "./pages/management/exception";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App: React.FC = () => {
                   <Route path="/monitoring" element={ <Monitoring /> } />
                   <Route path="/management" element={ <Management /> } />
                   <Route path="/role-management" element={ <RoleManagement /> } />
+                  <Route path="/exception/:status/:message" element= { <Exception /> }/>
                 </Routes>
               </Layout>
             </Layout>
