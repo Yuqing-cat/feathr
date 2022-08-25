@@ -19,6 +19,7 @@ import RoleManagement from "./pages/management/roleManagement";
 import Home from "./pages/home/home";
 import Projects from "./pages/project/projects";
 import { getMsalConfig } from "./utils/utils";
+import Sandbox from "./pages/sandbox/sandbox";
 
 const queryClient = new QueryClient();
 
@@ -56,6 +57,7 @@ const App = () => {
                     path="/responseErrors/:status/:detail"
                     element={<ResponseErrors />}
                   />
+                  <Route path="sandbox" element= {< Sandbox />}/>
                 </Routes>
               </Layout>
             </Layout>
