@@ -34,24 +34,9 @@ jobs:
       - name: Run tests
         run: sbt clean && sbt test
       - name: Summary
-        run: echo "SBT_TEST=${{ job.status }}" >> $GITHUB_ENV
-      - name: Get Date
         run: |
-          echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
-          echo ${{env.NOW}}
+          echo "SBT_TEST=${{ job.status }}" >> $GITHUB_ENV
           echo ${{env.SBT_TEST}}
-      - name: Notification
-        run: |
-          echo "MESSAGE=$(cat << EOF
-          {$NOW} Daily Test
-          \t SBT TEST : \t ${{env.SBT_TEST}}
-          \t PYTHON LINT TEST: \t ${{env.SBT_TEST}}
-          \t LOCAL_SPARK_TEST: \t ${{env.SBT_TEST}}
-          EOF
-          )" >> $GITHUB_ENV
-          echo $MESSAGE
-          echo ${{env.MESSAGE}}
-          curl -H 'Content-Type: application/json' -d '{"text": "${{env.MESSAGE}}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   python_lint:
     runs-on: ubuntu-latest
@@ -74,7 +59,23 @@ jobs:
       - name: Summary
         run:  |
             echo "PYLINT_TEST=${{job.status}}" >> $GITHUB_ENV
-            echo ${{env.PYLINT_TEST}}
+            echo "${{env.PYLINT_TEST}}"
+            echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+            echo ${{env.NOW}}
+            echo "::set-env name=NOW::$(date +'%Y-%m-%d')"
+            date +'%Y-%m-%d'
+            echo ${{env.NOW}}
+      - name: Notification
+        run: |
+          echo "MESSAGE=$(cat << EOF
+          ${{env.NOW}} Daily Test
+          \t SBT TEST - \t ${{env.SBT_TEST}}
+          \t PYTHON LINT TEST - \t ${{env.PYLINT_TEST}}
+          \t LOCAL_SPARK_TEST - \t ${{env.PYLINT_TEST}}
+          EOF
+          )" >> $GITHUB_ENV
+          echo ${{env.MESSAGE}}
+          curl -H 'Content-Type: application/json' -d '{"text": "${{env.MESSAGE}}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   local_spark_test:
     runs-on: ubuntu-latest
@@ -136,6 +137,7 @@ jobs:
       - name: Summary
         run:  |
             echo "LOCAL_SPARK_TEST=${{job.status}}" >> $GITHUB_ENV
+            echo "${{env.LOCAL_SPARK_TEST}}"
 
   summary:
     runs-on: ubuntu-latest
@@ -152,11 +154,11 @@ jobs:
         run: |
           MESSAGE=$(cat << EOF
           {$NOW} Daily Test
-          \t SBT TEST : \t {$SBT_TEST}
-          \t PYTHON LINT TEST: \t {$PYLINT_TEST}
-          \t LOCAL_SPARK_TEST: \t {$LOCAL_SPARK_TEST}
+          \t SBT TEST : \t ${{env.SBT_TEST}}
+          \t PYTHON LINT TEST: \t ${{env.PYLINT_TEST}}
+          \t LOCAL_SPARK_TEST: \t ${{env.LOCAL_SPARK_TEST}}
           EOF
           )
-          echo $MESSAGE
-          curl -H 'Content-Type: application/json' -d '{"text": "{$MESSAGE}"}' ${{ secrets.TEAMS_WEBHOOK }}
+          echo ${{env.MESSAGE}}
+          curl -H 'Content-Type: application/json' -d '{"text": "${{env.MESSAGE}}"}' ${{ secrets.TEAMS_WEBHOOK }}
           
