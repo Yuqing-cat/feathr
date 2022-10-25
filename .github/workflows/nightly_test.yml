@@ -35,9 +35,23 @@ jobs:
         run: sbt clean && sbt test
       - name: Summary
         run: echo "SBT_TEST=${{ job.status }}" >> $GITHUB_ENV
+      - name: Get Date
+        run: |
+          echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          echo ${{env.NOW}}
+          echo ${{env.SBT_TEST}}
       - name: Notification
         run: |
-            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: ${{ github.job }} Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
+          echo "MESSAGE=$(cat << EOF
+          {$NOW} Daily Test
+          \t SBT TEST : \t ${{env.SBT_TEST}}
+          \t PYTHON LINT TEST: \t ${{env.SBT_TEST}}
+          \t LOCAL_SPARK_TEST: \t ${{env.SBT_TEST}}
+          EOF
+          )" >> $GITHUB_ENV
+          echo $MESSAGE
+          echo ${{env.MESSAGE}}
+          curl -H 'Content-Type: application/json' -d '{"text": "${{env.MESSAGE}}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   python_lint:
     runs-on: ubuntu-latest
@@ -60,10 +74,7 @@ jobs:
       - name: Summary
         run:  |
             echo "PYLINT_TEST=${{job.status}}" >> $GITHUB_ENV
-      - name: Notification
-        run: |
-            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
-
+            echo ${{env.PYLINT_TEST}}
 
   local_spark_test:
     runs-on: ubuntu-latest
@@ -125,9 +136,6 @@ jobs:
       - name: Summary
         run:  |
             echo "LOCAL_SPARK_TEST=${{job.status}}" >> $GITHUB_ENV
-      - name: Notification
-        run: |
-            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Local Spark Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   summary:
     runs-on: ubuntu-latest
@@ -139,12 +147,14 @@ jobs:
           echo $NOW
           echo $SBT_TEST
           echo $PYLINT_TEST
+          echo $LOCAL_SPARK_TEST
       - name: Summary
         run: |
           MESSAGE=$(cat << EOF
           {$NOW} Daily Test
           \t SBT TEST : \t {$SBT_TEST}
           \t PYTHON LINT TEST: \t {$PYLINT_TEST}
+          \t LOCAL_SPARK_TEST: \t {$LOCAL_SPARK_TEST}
           EOF
           )
           echo $MESSAGE
