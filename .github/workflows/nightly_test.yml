@@ -1,0 +1,114 @@
+name: Feathr Daily Test with Notification
+
+on:
+  pull_request:
+    # Sequence of patterns matched against refs/heads
+    branches:
+      - main
+
+  schedule:
+    # * is a special character in YAML so you have to quote this string
+    - cron:  '30 17 * * *'
+
+jobs:
+  sbt_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "temurin"
+      - name: Run tests
+        run: sbt clean && sbt test
+
+  python_lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install flake8
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+  local_spark_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up JDK 8
+        uses: actions/setup-java@v2
+        with:
+          java-version: "8"
+          distribution: "temurin"
+      - name: Build JAR
+        run: |
+          sbt assembly
+          # remote folder for CI upload
+          echo "CI_SPARK_REMOTE_JAR_FOLDER=feathr_jar_github_action_$(date +"%H_%M_%S")" >> $GITHUB_ENV
+          # get local jar name without paths so version change won't affect it
+          echo "FEATHR_LOCAL_JAR_NAME=$(ls target/scala-2.12/*.jar|  xargs -n 1 basename)" >> $GITHUB_ENV
+          # get local jar name without path
+          echo "FEATHR_LOCAL_JAR_FULL_NAME_PATH=$(ls target/scala-2.12/*.jar)" >> $GITHUB_ENV
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install Feathr Package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest pytest-xdist
+          python -m pip install -e ./feathr_project/
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi          
+      - name: Run Feathr with Local Spark
+        env:
+          PROJECT_CONFIG__PROJECT_NAME: "feathr_github_ci_local"
+          SPARK_CONFIG__SPARK_CLUSTER: local
+          REDIS_PASSWORD: ${{secrets.REDIS_PASSWORD}}
+          AZURE_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+          AZURE_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+          AZURE_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
+          S3_ACCESS_KEY: ${{secrets.S3_ACCESS_KEY}}
+          S3_SECRET_KEY: ${{secrets.S3_SECRET_KEY}}
+          ADLS_ACCOUNT: ${{secrets.ADLS_ACCOUNT}}
+          ADLS_KEY: ${{secrets.ADLS_KEY}}
+          BLOB_ACCOUNT: ${{secrets.BLOB_ACCOUNT}}
+          BLOB_KEY: ${{secrets.BLOB_KEY}}
+          JDBC_TABLE: ${{secrets.JDBC_TABLE}}
+          JDBC_USER: ${{secrets.JDBC_USER}}
+          JDBC_PASSWORD: ${{secrets.JDBC_PASSWORD}}
+          JDBC_DRIVER: ${{secrets.JDBC_DRIVER}}
+          JDBC_SF_PASSWORD: ${{secrets.JDBC_SF_PASSWORD}}
+          KAFKA_SASL_JAAS_CONFIG: ${{secrets.KAFKA_SASL_JAAS_CONFIG}}
+          MONITORING_DATABASE_SQL_PASSWORD: ${{secrets.MONITORING_DATABASE_SQL_PASSWORD}}
+          COSMOS1_KEY: ${{secrets.COSMOS1_KEY}}
+          SQL1_USER: ${{secrets.SQL1_USER}}
+          SQL1_PASSWORD: ${{secrets.SQL1_PASSWORD}}
+        run: |
+          # skip cloud related tests
+          pytest feathr_project/test/test_local_spark_e2e.py
+
+  summary:
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [sbt_test, python_lint, local_spark_test]
+    steps:
+      - name: Status Check
+        run: |
+          echo "1. sbt test: ${{sbt_test.status}}" >> $GITHUB_STEP_SUMMARY
+          echo "2. python lint:${{python_lint.status}}" >> $GITHUB_STEP_SUMMARY
+          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Action Result $GITHUB_STEP_SUMMARY"}' https://microsoft.webhook.office.com/webhookb2/c6352013-bf4c-4b2e-93ab-0875b1d24c68@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/59bec905dff5423796192043ed445bff/1ba7a52b-43cd-4483-a5c9-c47fb36ab0f0
