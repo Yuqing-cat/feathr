@@ -33,6 +33,8 @@ jobs:
           distribution: "temurin"
       - name: Run tests
         run: sbt clean && sbt test
+      - name: Summary
+        run: echo "{sbt test}={${{ job.status }}" >> $GITHUB_OUTPUT
 
   python_lint:
     runs-on: ubuntu-latest
@@ -118,6 +120,5 @@ jobs:
     steps:
       - name: Status Check
         run: |
-          echo "1. sbt test: ${{jobs.sbt_test.status}}" >> $GITHUB_STEP_SUMMARY
-          echo "2. python lint:${{jobs.python_lint.status}}" >> $GITHUB_STEP_SUMMARY
-          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Action Result $GITHUB_STEP_SUMMARY"}' https://microsoft.webhook.office.com/webhookb2/c6352013-bf4c-4b2e-93ab-0875b1d24c68@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/59bec905dff5423796192043ed445bff/1ba7a52b-43cd-4483-a5c9-c47fb36ab0f0
+          echo $GITHUB_OUTPUT
+          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Action Result $GITHUB_OUTPUT"}' https://microsoft.webhook.office.com/webhookb2/c6352013-bf4c-4b2e-93ab-0875b1d24c68@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/59bec905dff5423796192043ed445bff/1ba7a52b-43cd-4483-a5c9-c47fb36ab0f0
