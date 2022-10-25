@@ -64,11 +64,15 @@ jobs:
             echo "${{env.NOW}}"
       - name: Notification
         run: |
-          echo "MESSAGE=$(${{env.NOW}} Daily Test: 1. SBT TEST - ${{env.PYLINT_TEST}}, 2. PYTHON LINT TEST - ${{env.PYLINT_TEST}}, 3. LOCAL_SPARK_TEST - ${{env.PYLINT_TEST}})" >> $GITHUB_ENV
+          echo "MESSAGE='${{env.NOW}} Daily Test: 1. SBT TEST - ${{env.PYLINT_TEST}}, 2. PYTHON LINT TEST - ${{env.PYLINT_TEST}}, 3. LOCAL_SPARK_TEST - ${{env.PYLINT_TEST}}'" >> $GITHUB_ENV
+          echo "${{env.MESSAGE}}"
       - name: Notification2
         run: |
           echo "${{env.MESSAGE}}"
           curl -H 'Content-Type: application/json' -d '{"text": "${{env.MESSAGE}}"}' ${{ secrets.TEAMS_WEBHOOK }}
+      - name: Notification3
+        run: |
+          curl -H 'Content-Type: application/json' -d '{"text": "${{env.NOW}} Daily Test: 1. SBT TEST - ${{env.PYLINT_TEST}}, 2. PYTHON LINT TEST - ${{env.PYLINT_TEST}}, 3. LOCAL_SPARK_TEST - ${{env.PYLINT_TEST}}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   local_spark_test:
     runs-on: ubuntu-latest
