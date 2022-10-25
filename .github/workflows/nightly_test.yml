@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: sbt clean && sbt test
       - name: Summary
-        run: echo "sbt test = ${{ job.status }}" >> $GITHUB_OUTPUT
+        run: echo "SBTTEST::${{ job.status }}" >> $GITHUB_ENV
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: ${{ github.job }} Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
@@ -58,7 +58,8 @@ jobs:
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Summary
-        run: echo "Python Lint Test = ${{ job.status }}" >> $GITHUB_OUTPUT
+        run:  |
+            echo "PYLINTTEST::${{job.status}}" >> $GITHUB_ENV
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
@@ -124,3 +125,18 @@ jobs:
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Local Spark Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [sbt_test, python_lint]
+    steps:
+      - name: Get Date
+        run: |
+          echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+          echo $NOW
+          echo $SBTTEST
+          echo $PYLINTTEST
+      - name: Summary
+        run: |
+          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}, in ENV {$PYLINTTEST}"}' ${{ secrets.TEAMS_WEBHOOK }}
+          
