@@ -122,6 +122,9 @@ jobs:
         run: |
           # skip cloud related tests
           pytest feathr_project/test/test_local_spark_e2e.py
+      - name: Summary
+        run:  |
+            echo "LOCAL_SPARK_TEST=${{job.status}}" >> $GITHUB_ENV
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Local Spark Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
@@ -132,11 +135,18 @@ jobs:
     steps:
       - name: Get Date
         run: |
-          echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+          echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
           echo $NOW
           echo $SBT_TEST
           echo $PYLINT_TEST
       - name: Summary
         run: |
-          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}, in ENV {$PYLINT_TEST}"}' ${{ secrets.TEAMS_WEBHOOK }}
+          MESSAGE=$(cat << EOF
+          {$NOW} Daily Test
+          \t SBT TEST : \t {$SBT_TEST}
+          \t PYTHON LINT TEST: \t {$PYLINT_TEST}
+          EOF
+          )
+          echo $MESSAGE
+          curl -H 'Content-Type: application/json' -d '{"text": "{$MESSAGE}"}' ${{ secrets.TEAMS_WEBHOOK }}
           
