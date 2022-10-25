@@ -1,10 +1,19 @@
 name: Feathr Daily Test with Notification
 
 on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "ui/**"
+      - "**/README.md"
+
   pull_request:
-    # Sequence of patterns matched against refs/heads
-    branches:
-      - main
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "ui/**"
+      - "**/README.md"
 
   schedule:
     # * is a special character in YAML so you have to quote this string
