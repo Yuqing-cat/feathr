@@ -34,7 +34,10 @@ jobs:
       - name: Run tests
         run: sbt clean && sbt test
       - name: Summary
-        run: echo "{sbt test}={${{ job.status }}" >> $GITHUB_OUTPUT
+        run: echo "sbt test = ${{ job.status }}" >> $GITHUB_OUTPUT
+      - name: Notification
+        run: |
+            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: ${{ github.job }} Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
 
   python_lint:
     runs-on: ubuntu-latest
@@ -54,6 +57,12 @@ jobs:
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
           # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Summary
+        run: echo "Python Lint Test = ${{ job.status }}" >> $GITHUB_OUTPUT
+      - name: Notification
+        run: |
+            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
+
 
   local_spark_test:
     runs-on: ubuntu-latest
@@ -112,13 +121,6 @@ jobs:
         run: |
           # skip cloud related tests
           pytest feathr_project/test/test_local_spark_e2e.py
-
-  summary:
-    runs-on: ubuntu-latest
-    if: ${{ always() }}
-    needs: [sbt_test, python_lint, local_spark_test]
-    steps:
-      - name: Status Check
+      - name: Notification
         run: |
-          echo $GITHUB_OUTPUT
-          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Action Result $GITHUB_OUTPUT"}' https://microsoft.webhook.office.com/webhookb2/c6352013-bf4c-4b2e-93ab-0875b1d24c68@72f988bf-86f1-41af-91ab-2d7cd011db47/IncomingWebhook/59bec905dff5423796192043ed445bff/1ba7a52b-43cd-4483-a5c9-c47fb36ab0f0
+            curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Local Spark Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
