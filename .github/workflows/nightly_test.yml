@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: sbt clean && sbt test
       - name: Summary
-        run: echo "SBTTEST::${{ job.status }}" >> $GITHUB_ENV
+        run: echo "SBT_TEST=${{ job.status }}" >> $GITHUB_ENV
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: ${{ github.job }} Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
@@ -59,7 +59,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Summary
         run:  |
-            echo "PYLINTTEST::${{job.status}}" >> $GITHUB_ENV
+            echo "PYLINT_TEST=${{job.status}}" >> $GITHUB_ENV
       - name: Notification
         run: |
             curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}"}' ${{ secrets.TEAMS_WEBHOOK }}
@@ -134,9 +134,9 @@ jobs:
         run: |
           echo "NOW::$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
           echo $NOW
-          echo $SBTTEST
-          echo $PYLINTTEST
+          echo $SBT_TEST
+          echo $PYLINT_TEST
       - name: Summary
         run: |
-          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}, in ENV {$PYLINTTEST}"}' ${{ secrets.TEAMS_WEBHOOK }}
+          curl -H 'Content-Type: application/json' -d '{"text": "GitHub Daily Test: Python Lint Result ${{ job.status }}, in ENV {$PYLINT_TEST}"}' ${{ secrets.TEAMS_WEBHOOK }}
           
