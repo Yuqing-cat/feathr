@@ -64,13 +64,7 @@ jobs:
             echo "${{env.NOW}}"
       - name: Notification
         run: |
-          echo "MESSAGE=$(cat << EOF
-          ${{env.NOW}} Daily Test
-          1. SBT TEST - ${{env.PYLINT_TEST}}
-          2. PYTHON LINT TEST - ${{env.PYLINT_TEST}}
-          3. LOCAL_SPARK_TEST - ${{env.PYLINT_TEST}}
-          EOF
-          )" >> $GITHUB_ENV
+          echo "MESSAGE=$(${{env.NOW}} Daily Test: 1. SBT TEST - ${{env.PYLINT_TEST}, 2. PYTHON LINT TEST - ${{env.PYLINT_TEST}}, 3. LOCAL_SPARK_TEST - ${{env.PYLINT_TEST}})" >> $GITHUB_ENV
       - name: Notification2
         run: |
           echo "${{env.MESSAGE}}"
