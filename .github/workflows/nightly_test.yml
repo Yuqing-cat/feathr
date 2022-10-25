@@ -62,9 +62,6 @@ jobs:
             echo "${{env.PYLINT_TEST}}"
             echo "NOW=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
             echo ${{env.NOW}}
-            echo "::set-env name=NOW::$(date +'%Y-%m-%d')"
-            date +'%Y-%m-%d'
-            echo ${{env.NOW}}
       - name: Notification
         run: |
           echo "MESSAGE=$(cat << EOF
